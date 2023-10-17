@@ -27,12 +27,6 @@ module.exports = {
       clinicId: {
         type: Sequelize.INTEGER,
       },
-      addressClinic: {
-        type: Sequelize.STRING,
-      },
-      nameClinic: {
-        type: Sequelize.STRING,
-      },
       note: {
         type: Sequelize.STRING,
       },

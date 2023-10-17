@@ -20,7 +20,7 @@ module.exports = {
           {model: db.Allcode, as: 'priceData', attributes:['valueVi']},
           {model: db.Allcode, as: 'paymentData', attributes:['valueVi']},
           {model: db.Allcode, as: 'provinceData', attributes:['valueVi']},       
-          
+          {model: db.Clinic},       
         ] ,
         raw: true,
         nest: true,

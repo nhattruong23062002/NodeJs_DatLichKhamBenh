@@ -27,7 +27,7 @@ router.route('/upload-single')
 
 router.route("/")
   .get(getAll)
-  .post(passport.authenticate('jwt', { session: false }),create);
+  .post(create);
 
 router.route("/:id")
   .get(getDetail)

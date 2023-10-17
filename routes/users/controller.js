@@ -59,7 +59,8 @@ module.exports = {
           include:[
             {model: db.Allcode, as: 'priceData', attributes:['valueVi']},
             {model: db.Allcode, as: 'paymentData', attributes:['valueVi']},
-            {model: db.Allcode, as: 'provinceData', attributes:['valueVi']},       
+            {model: db.Allcode, as: 'provinceData', attributes:['valueVi']},      
+            {model: db.Clinic, as: 'clinicData'},    
           ]
           },
           {model: db.Allcode, as: 'positionData', attributes:['valueVi']},
@@ -171,7 +172,11 @@ module.exports = {
         where:{roleId: "R2"},
         include: [
           {model: db.Allcode, as: 'positionData', attributes:['valueVi']},
-          {model: db.Allcode, as: 'genderData', attributes:['valueVi']}
+          {model: db.Allcode, as: 'genderData', attributes:['valueVi']},
+          {model: db.Doctor_Infor,
+            include:[  
+              {model: db.Specialty, as: 'specialtyData'},    
+            ]}
         ] ,
         raw: true,
         nest: true,

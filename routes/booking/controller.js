@@ -15,12 +15,12 @@ const transporter = nodemailer.createTransport({
 
 module.exports = {
   getAll: async (req, res, next) => {
-    const { patientId,date } = req.query;
+    const { doctorId,date } = req.query;
     dateNumber = parseInt(date);
 
     try {
       let results = await db.Booking.findAll({
-        where: { statusId: 'S2', patientId:patientId, date: dateNumber },
+        where: { statusId: 'S2', doctorId:doctorId, date: dateNumber },
         include: [
           { model: db.User, as: 'patientData'},
           { model: db.Allcode, as: 'timeTypeDataPatient'}
@@ -130,10 +130,46 @@ module.exports = {
     try {
       const { id } = req.params;  
       const updateData = req.body;
+      console.log('««««« updateData »»»»»', updateData);
 
       const found = await db.Booking.update( updateData, {
         where: {id: id}
       });
+
+      const mailOptions = {
+        from: 'nhattr2306@gmail.com', // Thay thế bằng email của bạn 
+        to: 'nhattr23062@gmail.com',
+        subject: 'Kết quả đặt lịch khám bệnh',
+        html: `
+          <p>Xin chào!</p>
+          <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên BookingCare thành công</p>
+          <p>Thông tin hóa đơn/đơn thuốc được gửi trong file đính kèm</p>
+          <p>Xin chân thành cảm ơn</p>
+          `,
+        attachments: [
+          {
+            filename: 'your-image.jpg',
+            path: `http://localhost:3333/${updateData.fileName}`, 
+          }
+        ]
+        };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log('Error sending email:', error);
+          return res.status(500).json({
+            statusCode: 500,
+            message: 'Đã có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.',
+          });
+        }
+        console.log('Email sent: ' + info.response);
+        return res.status(200).json({
+          statusCode: 200,
+          message: 'Một email chứa liên kết đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn.',
+        });
+      });
+  
+
       if (found) {
         return res.send({
           code: 200,
