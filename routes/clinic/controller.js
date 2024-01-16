@@ -1,9 +1,19 @@
 var db = require("../../models/index");
+const { Op } = require('sequelize');
+
 
 module.exports = {
   getAll: async (req, res, next) => {
     try {
-      let results = await db.Clinic.findAll();
+      const { name } = req.query;
+      const conditionFind = {
+        where: {
+          name: {
+            [db.Sequelize.Op.like]: `%${name}%`,
+          },
+        },
+      };
+      let results = await db.Clinic.findAll(conditionFind);
 
       return res.send({ code: 200, payload: results });
     } catch (err) {

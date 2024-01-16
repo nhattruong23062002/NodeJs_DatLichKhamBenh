@@ -46,5 +46,6 @@ let isValidPassword = async (user, password) => {
   };
 module.exports = {
     createNewUser,
+    hasUserPassword,
     isValidPassword
-}
+} 

@@ -3,7 +3,15 @@ var db = require('../../models/index');
 module.exports = {
   getAll: async (req, res, next) => {
     try {
-      let results = await db.Specialty.findAll()
+      const { name } = req.query;
+      const conditionFind = {
+        where: {
+          name: {
+            [db.Sequelize.Op.like]: `%${name}%`,
+          },
+        },
+      };
+      let results = await db.Specialty.findAll(conditionFind)
   
       return res.send({ code: 200, payload: results });
     } catch (err) {

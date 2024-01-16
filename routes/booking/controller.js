@@ -15,12 +15,14 @@ const transporter = nodemailer.createTransport({
 
 module.exports = {
   getAll: async (req, res, next) => {
-    const { doctorId,date } = req.query;
+    const { doctorId,date ,status} = req.query;
     dateNumber = parseInt(date);
+
+    console.log('««««« dateNumber »»»»»', dateNumber);
 
     try {
       let results = await db.Booking.findAll({
-        where: { statusId: 'S2', doctorId:doctorId, date: dateNumber },
+        where: { statusId: status, doctorId:doctorId, date: dateNumber },
         include: [
           { model: db.User, as: 'patientData'},
           { model: db.Allcode, as: 'timeTypeDataPatient'}
@@ -28,7 +30,6 @@ module.exports = {
         raw : false,
         nest: true
       });
-  
       return res.send({ code: 200, payload: results });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
@@ -70,7 +71,7 @@ module.exports = {
         subject: 'Thông tin đặt lịch khám bệnh',
         html: `
           <p>Xin chào ${data.patientFirstName} ${data.patientLastName}!</p>
-          <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên BookingCare</p>
+          <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên HealthCare</p>
           <p>Thông tin đặt lịch khám bệnh:</p>
           <div><b>Thời gian: ${data.timeTypeValue} - ${data.dayName} - ${data.day}/${data.month}/${data.year}</b></div>
           <div><b>${data.doctorPosition}: ${data.doctorFirstName} ${data.doctorLastName}</b></div>
@@ -125,7 +126,6 @@ module.exports = {
     }
   },
 
-
   update: async function (req, res, next) {
     try {
       const { id } = req.params;  
@@ -136,38 +136,45 @@ module.exports = {
         where: {id: id}
       });
 
-      const mailOptions = {
-        from: 'nhattr2306@gmail.com', // Thay thế bằng email của bạn 
-        to: 'nhattr23062@gmail.com',
-        subject: 'Kết quả đặt lịch khám bệnh',
-        html: `
-          <p>Xin chào!</p>
-          <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên BookingCare thành công</p>
-          <p>Thông tin hóa đơn/đơn thuốc được gửi trong file đính kèm</p>
-          <p>Xin chân thành cảm ơn</p>
-          `,
-        attachments: [
-          {
-            filename: 'your-image.jpg',
-            path: `http://localhost:3333/${updateData.fileName}`, 
-          }
-        ]
-        };
+      if(updateData.statusId === 'S3'){
+        const mailOptions = {
+          from: 'nhattr2306@gmail.com', // Thay thế bằng email của bạn 
+          to: 'nhattr23062@gmail.com',
+          subject: 'Kết quả đặt lịch khám bệnh',
+          html: `
+            <p>Xin chào!</p>
+            <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên HealthCare thành công</p>
+            <p>Thông tin pháp đồ điệu trị và những lưu ý khi đi khám được gửi trong file đính kèm</p>
+            <p>Xin chân thành cảm ơn</p>
+            `,
+          attachments: [
+          ]
+          };
 
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.log('Error sending email:', error);
-          return res.status(500).json({
-            statusCode: 500,
-            message: 'Đã có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.',
+          if(updateData.fileName){
+            mailOptions.attachments.push({
+              filename: 'your-image.jpg',
+              path: `http://localhost:3333/${updateData.fileName}`
+            });
+          }
+  
+  
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.log('Error sending email:', error);
+            return res.status(500).json({
+              statusCode: 500,
+              message: 'Đã có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.',
+            });
+          }
+          console.log('Email sent: ' + info.response);
+          return res.status(200).json({
+            statusCode: 200,
+            message: 'Một email chứa liên kết đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn.',
           });
-        }
-        console.log('Email sent: ' + info.response);
-        return res.status(200).json({
-          statusCode: 200,
-          message: 'Một email chứa liên kết đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn.',
         });
-      });
+      }
+
   
 
       if (found) {

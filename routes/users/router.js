@@ -1,37 +1,43 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
-const passport = require('passport');
+const passport = require("passport");
 
 const {
-    getAll,
-    getDetail,
-    create,
-    remove,
-    update,
-    login,
-    uploadAvatar,
-    getAllDoctor
-  } = require("./controller");
+  getAll,
+  getDetail,
+  create,
+  remove,
+  update,
+  login,
+  uploadAvatar,
+  getAllDoctor,
+  forgotPassword,
+  resetPassword,
+  changePassword,
+} = require("./controller");
 
-router.route("/getall-doctor")
-  .get(getAllDoctor)
+router.route("/getall-doctor").get(getAllDoctor);
 
-router.route('/login')
-  .post(
-    passport.authenticate('local', { session: false }),
-    login,
-    )
+router
+  .route("/login")
+  .post(passport.authenticate("local", { session: false }), login);
 
-router.route('/upload-single')
-  .post(passport.authenticate('jwt', { session: false }),uploadAvatar)
+router.route("/forgotPassword").post(forgotPassword);
+router.route("/resetPassword").post(resetPassword);
+router.route("/changePassword/:token").post(changePassword);
 
-router.route("/")
-  .get(getAll)
-  .post(create);
 
-router.route("/:id")
+
+router
+  .route("/upload-single")
+  .post(passport.authenticate("jwt", { session: false }), uploadAvatar);
+
+router.route("/").get(getAll).post(create);
+
+router
+  .route("/:id")
   .get(getDetail)
-  .patch(passport.authenticate('jwt', { session: false }),update)
-  .delete(passport.authenticate('jwt', { session: false }),remove);
+  .patch(/* passport.authenticate('jwt', { session: false }), */ update)
+  .delete(passport.authenticate("jwt", { session: false }), remove);
 
 module.exports = router;
