@@ -24,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       description: DataTypes.STRING,
       token: DataTypes.STRING,
       timeType: DataTypes.STRING,
+      scheduleId: DataTypes.INTEGER,
     },
     {
       sequelize,
