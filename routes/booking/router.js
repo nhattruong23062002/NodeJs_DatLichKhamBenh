@@ -7,9 +7,12 @@ const {
     create,
     remove,
     update,
-    verifyBook
+    verifyBook,
+    getAllBookingCurrentWeek
   } = require("./controller");
 
+router.route("/getAll-booking-currentWeek")
+  .get(getAllBookingCurrentWeek)
 
 router.route("/")
   .get(getAll)

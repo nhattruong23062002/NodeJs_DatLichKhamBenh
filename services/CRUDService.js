@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const salt = bcrypt.genSaltSync(10);
 var db = require('../models/index');
 
-let createNewUser =async(data) => {
+let createNewUser = async(data) => {
     return new Promise(async(resolve,reject) => {
         try {
             let hashPasswordFromBcrypt = await hasUserPassword(data.password);

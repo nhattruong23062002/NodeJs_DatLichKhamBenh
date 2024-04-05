@@ -28,12 +28,12 @@ module.exports = {
         where: { id: id },
       });
 
-      let doctorSpecialty = [];
-      doctorSpecialty = await db.Doctor_Infor.findAll({
+      let doctorClinic = [];
+      doctorClinic = await db.Doctor_Infor.findAll({
         where: { clinicId: id },
       });
 
-      found.doctorSpecialty = doctorSpecialty;
+      found.doctorClinic = doctorClinic;
 
       if (found) {
         return res.send({ code: 200, payload: found });

@@ -14,9 +14,15 @@ const {
   forgotPassword,
   resetPassword,
   changePassword,
+  getAllPatient,
+  getOutstandingDoctor,
+  getOutstandingPatient
 } = require("./controller");
 
+router.route("/getall-patient").get(getAllPatient);
 router.route("/getall-doctor").get(getAllDoctor);
+router.route("/outstanding-doctor").get(getOutstandingDoctor);
+router.route("/outstanding-patient").get(getOutstandingPatient);
 
 router
   .route("/login")

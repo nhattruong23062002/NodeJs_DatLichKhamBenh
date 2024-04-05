@@ -1,6 +1,6 @@
 var db = require("../../models/index");
 const jwtSettings = require("../../constants/jwtSetting");
-const JWT = require('jsonwebtoken');
+const JWT = require("jsonwebtoken");
 const { generateToken } = require("../../helpers/jwtHelper");
 const multer = require("multer");
 const CRUDService = require("../../services/CRUDService");
@@ -12,7 +12,7 @@ const bcrypt = require("bcrypt");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "nhattr2306@gmail.com", // Thay thế bằng email của bạn để gửi yêu cầu đặt lại mật khẩu
+    user: "nhattr2306@gmail.com",
     pass: "mkjtvaunyizktgtp", // Thay thế bằng mật khẩu email của bạn
   },
 });
@@ -39,7 +39,13 @@ module.exports = {
 
   getAll: async (req, res, next) => {
     try {
+      const { role } = req.query;
+      let whereClause = {};
+      if (role) {
+        whereClause.roleId = role;
+      }
       let results = await db.User.findAll({
+        where: whereClause,
         include: [
           { model: db.Allcode, as: "positionData", attributes: ["valueVi"] },
           { model: db.Allcode, as: "genderData", attributes: ["valueVi"] },
@@ -269,30 +275,32 @@ module.exports = {
     }
   },
 
-  resetPassword : async (req, res,next) => {
+  resetPassword: async (req, res, next) => {
     try {
-      const { token,password } = req.body;
+      const { token, password } = req.body;
 
       // Giải mã token để lấy email của người dùng
       const decodedToken = JWT.verify(token, jwtSettings.SECRET);
       const email = decodedToken.email;
 
       // Tìm kiếm người dùng dựa vào email
-      const user = await db.User.findOne({ where: { email: email }});
-  
+      const user = await db.User.findOne({ where: { email: email } });
+
       if (!user) {
         return res.status(404).json({
           statusCode: 404,
           message: "Không tìm thấy người dùng với email đã cung cấp.",
         });
       }
-      console.log('««««« user »»»»»', user);
-  
+      console.log("««««« user »»»»»", user);
+
       // Cập nhật mật khẩu mới cho người dùng
       let newPassWord = await CRUDService.hasUserPassword(password);
-      await db.User.update({ password: newPassWord }, { where: { email: email }});
+      await db.User.update(
+        { password: newPassWord },
+        { where: { email: email } }
+      );
 
-  
       return res.status(200).json({
         statusCode: 200,
         message: "Mật khẩu đã được đặt lại thành công.",
@@ -316,7 +324,7 @@ module.exports = {
       const email = decodedToken.email;
 
       // Tìm kiếm người dùng dựa vào email
-      const user = await db.User.findOne({ where:{ email : email }});
+      const user = await db.User.findOne({ where: { email: email } });
 
       if (!user) {
         return res.status(404).json({
@@ -333,9 +341,12 @@ module.exports = {
           message: "Mật khẩu hiện tại không đúng.",
         });
       }
-      
-       // Cập nhật mật khẩu mới cho người dùng
-      await db.User.update({ password: newPassword }, { where: { email: email }});
+
+      // Cập nhật mật khẩu mới cho người dùng
+      await db.User.update(
+        { password: newPassword },
+        { where: { email: email } }
+      );
 
       return res.status(200).json({
         statusCode: 200,
@@ -350,4 +361,173 @@ module.exports = {
     }
   },
 
+  getAllDoctor: async (req, res, next) => {
+    try {
+      const { name } = req.query;
+      let results = await db.User.findAll({
+        where: {
+          roleId: "R2",
+          lastName: {
+            [db.Sequelize.Op.like]: `%${name}%`,
+          },
+        },
+        include: [
+          { model: db.Allcode, as: "positionData", attributes: ["valueVi"] },
+          { model: db.Allcode, as: "genderData", attributes: ["valueVi"] },
+          {
+            model: db.Doctor_Infor,
+            include: [{ model: db.Specialty, as: "specialtyData" }],
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+
+      return res.send({ code: 200, payload: results });
+    } catch (err) {
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  getAllPatient: async (req, res, next) => {
+    try {
+      let results = await db.User.findAll({
+        where: {
+          roleId: "R3",
+        },
+        include: [
+          { model: db.Allcode, as: "positionData", attributes: ["valueVi"] },
+          { model: db.Allcode, as: "genderData", attributes: ["valueVi"] },
+        ],
+        raw: true,
+        nest: true,
+      });
+
+      return res.send({ code: 200, payload: results });
+    } catch (err) {
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  getOutstandingDoctor: async (req, res, next) => {
+    try {
+      let results = await db.Booking.findAll({
+        attributes: [
+          "doctorId",
+          [db.sequelize.fn("COUNT", "*"), "bookingCount"],
+        ],
+        group: ["doctorId"],
+        order: [[db.sequelize.literal("bookingCount"), "DESC"]],
+        limit: 5,
+        raw: true,
+      });
+
+      let doctorIds = results.map((result) => result.doctorId);
+
+      let doctors = await db.User.findAll({
+        where: { id: doctorIds },
+        include: [
+          { model: db.Allcode, as: "positionData", attributes: ["valueVi"] },
+          { model: db.Allcode, as: "genderData", attributes: ["valueVi"] },
+          {
+            model: db.Doctor_Infor,
+            include: [{ model: db.Specialty, as: "specialtyData" }],
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+
+      // Thêm số lần đặt lịch vào kết quả
+      let topDoctors = results.map((result) => {
+        let doctor = doctors.find((doctor) => doctor.id === result.doctorId);
+        return {
+          ...doctor,
+          bookingCount: result.bookingCount,
+        };
+      });
+
+      return res.send({ code: 200, payload: topDoctors });
+    } catch (err) {
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  getOutstandingPatient: async (req, res, next) => {
+    try {
+      let results = await db.Booking.findAll({
+        attributes: [
+          "patientId",
+          [db.sequelize.fn("COUNT", "*"), "bookingCount"],
+        ],
+        group: ["patientId"],
+        order: [[db.sequelize.literal("bookingCount"), "DESC"]],
+        limit: 5,
+        raw: true,
+      });
+
+      let patientIds = results.map((result) => result.patientId);
+      console.log("««««« patientIds »»»»»", patientIds);
+
+      let topPatients = await Promise.all(
+        patientIds.map(async (patientId) => {
+          let doctorIdsArr = await db.Booking.findAll({
+            where: { patientId },
+            attributes: ["doctorId"],
+            raw: true,
+          });
+          let doctorIds = doctorIdsArr.map((booking) => booking.doctorId);
+
+          let priceIds = await Promise.all(
+            doctorIds.map(async (doctorId) => {
+              let doctorInfo = await db.Doctor_Infor.findOne({
+                where: { doctorId },
+                attributes: ["priceId"],
+                raw: true,
+              });
+              return doctorInfo ? doctorInfo.priceId : null;
+            })
+          );
+
+          let totalPrice = 0;
+          for (let i = 0; i < priceIds.length; i++) {
+            let priceId = priceIds[i];
+            let priceInfo = await db.Allcode.findOne({
+              where: { keyMap: priceId },
+              raw: true
+            });
+            if (priceInfo) {
+              totalPrice += parseInt(priceInfo.valueVi);
+            }
+          }
+    
+
+          let patient = await db.User.findOne({
+            where: { id: patientId },
+            include: [
+              {
+                model: db.Allcode,
+                as: "positionData",
+                attributes: ["valueVi"],
+              },
+              { model: db.Allcode, as: "genderData", attributes: ["valueVi"] },
+            ],
+            raw: true,
+          });
+
+          return {
+            ...patient,
+            bookingCount: results.find(
+              (result) => result.patientId === patientId
+            ).bookingCount,
+            totalPrice,
+          };
+        })
+      );
+
+      return res.send({ code: 200, payload: topPatients });
+    } catch (err) {
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
 };
