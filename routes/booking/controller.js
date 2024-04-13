@@ -3,7 +3,7 @@ var db = require("../../models/index");
 const nodemailer = require("nodemailer");
 const jwtSettings = require("../../constants/jwtSetting");
 const moment = require("moment");
-const { Op } = require('sequelize');
+const { Op } = require("sequelize");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -48,26 +48,107 @@ module.exports = {
       let results = await db.Booking.findAll({
         where: {
           date: {
-            [Op.between]: [startOfWeek, endOfWeek]
-          }
+            [Op.between]: [startOfWeek, endOfWeek],
+          },
         },
         attributes: [
-          [db.sequelize.fn('DAYOFWEEK', db.sequelize.col('date')), 'dayOfWeek'],
-          [db.sequelize.fn('COUNT', db.sequelize.col('*')), 'totalBooking']
+          [db.sequelize.fn("DAYOFWEEK", db.sequelize.col("date")), "dayOfWeek"],
+          [db.sequelize.fn("COUNT", db.sequelize.col("*")), "totalBooking"],
         ],
-        group: 'dayOfWeek',
-        raw: true
+        group: "dayOfWeek",
+        raw: true,
       });
 
-      const bookingCountsForWeek = Array(7).fill(0).map((_, index) => {
-        const result = results.find(item => parseInt(item.dayOfWeek) === index + 1);
-        return { date: index.toString(), totalBooking: result ? result.totalBooking : 0 };
-      });
-  
+      const bookingCountsForWeek = Array(7)
+        .fill(0)
+        .map((_, index) => {
+          const result = results.find(
+            (item) => parseInt(item.dayOfWeek) === index + 1
+          );
+          return {
+            date: index.toString(),
+            totalBooking: result ? result.totalBooking : 0,
+          };
+        });
+
       return res.send({ code: 200, payload: bookingCountsForWeek });
     } catch (err) {
-      console.log('««««« err »»»»»', err);
+      console.log("««««« err »»»»»", err);
       return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
+  getHistoryBooking: async (req, res, next) => {
+    try {
+      const { patientId } = req.query;
+
+      if (!patientId) {
+        return res
+          .status(400)
+          .json({ code: 400, error: "Patient ID is required" });
+      }
+
+      let bookingHistory = await db.Booking.findAll({
+        where: { patientId },
+        include: [
+          {
+            model: db.Allcode,
+            as: "statusDataPatient",
+            attributes: ["valueVi"],
+          },
+          {
+            model: db.Schedule,
+            as: "scheduleData",
+            attributes: ["date"],
+          },
+          {
+            model: db.Allcode,
+            as: "timeTypeDataPatient",
+            attributes: ["valueVi"],
+          },
+          {
+            model: db.User,
+            as: "doctorData",
+            attributes: ["firstName", "lastName"],
+            where: { id: db.sequelize.col("Booking.doctorId") },
+            include: [
+              {
+                model: db.Allcode,
+                as: "positionData",
+                attributes: ["valueVi"],
+              },
+            ],
+            required: true,
+          },
+          {
+            model: db.Doctor_Infor,
+            as:'doctorDataInfo',
+            attributes: ["clinicId"],
+            where: { id: db.sequelize.col("Booking.doctorId") },
+            required: true,
+            include: [
+              {
+                model: db.Clinic,
+                attributes: ["name"], 
+                as: "clinicData" 
+              },
+              {
+                model: db.Allcode,
+                as: "priceData",
+                attributes: ["valueVi"],
+              },
+            ]
+          },
+        ],
+        raw: true,
+      });
+
+      return res.send({ code: 200, payload: bookingHistory });
+    } catch (err) {
+      console.error("Error in getHistoryBooking:", err);
+      return res
+        .status(500)
+        .json({ code: 500, error: "Internal server error" });
     }
   },
 
