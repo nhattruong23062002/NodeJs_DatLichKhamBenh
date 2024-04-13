@@ -15,6 +15,21 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
+/* const customizeConfig = {
+  "dialect": "mysql",
+  "logging": false,
+  "query":{
+    "raw": true
+  },
+  "dialectOptions": {
+    "ssl":{
+      "required": true,
+      "rejectUnauthorized":false
+    }
+  }
+}
+sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USERNAME, process.env.DB_PASSWORD, customizeConfig); */
+
 fs
   .readdirSync(__dirname)
   .filter(file => {

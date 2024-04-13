@@ -7,6 +7,13 @@ const sequelize = new Sequelize('nhatit', 'root', null, {
   logging: false,
 });
 
+/* const sequelize = new Sequelize('bsdjdwj3bdlkeblpo4of', 'ucc9rwxej6ig2nlu', 'chyeDmw2xTAuytxS766E', {
+  host: 'bsdjdwj3bdlkeblpo4of-mysql.services.clever-cloud.com',
+  dialect: 'mysql',
+  logging: false,
+});
+ */
+
 
 let connectDB = async () => {
     try {
