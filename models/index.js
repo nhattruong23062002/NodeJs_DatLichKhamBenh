@@ -13,7 +13,7 @@ let sequelize;
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
 } */
-sequelize = new Sequelize(config.database, config.username, config.password, config);
+sequelize = new Sequelize("b1gtnii09lrzixp4r3g2", "u1x2uwfspy0trykt", "9k4uZAmwq0LcYKe3EfXY", config);
 
 /* const customizeConfig = {
   "dialect": "mysql",
