@@ -1,12 +1,12 @@
 {
   "development": {
-    "username": "root",
-    "password": null,
-    "database": "nhatit",
-    "host": "127.0.0.1",
+    "username": "u1x2uwfspy0trykt",
+    "password": "9k4uZAmwq0LcYKe3EfXY",
+    "database": "b1gtnii09lrzixp4r3g2",
+    "host": "b1gtnii09lrzixp4r3g2-mysql.services.clever-cloud.com",
     "dialect": "mysql",
     "logging": false,
-    "query":{
+    "query": {
       "raw": true
     }
   },
