@@ -5,9 +5,24 @@
     "database": "b1gtnii09lrzixp4r3g2",
     "host": "b1gtnii09lrzixp4r3g2-mysql.services.clever-cloud.com",
     "dialect": "mysql",
+    "port": 3306,
     "logging": false,
     "query": {
       "raw": true
     }
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "database_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
   }
 }
