@@ -13,6 +13,34 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+function sendEmailMedicalExaminationInformation(emailAddress) {
+  const mailOptions = {
+    from: "nhattr2306@gmail.com",
+    to: "nhattr23062@gmail.com",
+    subject: "Thông tin đi khám bệnh",
+    html: `
+      <p>Xin chào!</p>
+      <p>Bạn nhận được email này vì đã xác nhận đặt lịch khám bệnh online trên HealthCare thành công</p>
+      <p>Thông tin pháp đồ điệu trị và những lưu ý khi đi khám được gửi trong file đính kèm</p>
+      <p>Xin chân thành cảm ơn</p>
+    `,
+    attachments: [
+      {
+        filename: "your-image.jpg",
+        path: `https://bachmai.gov.vn/documents/37204/0/z4515220187066_9d44ab590b5544bfa3c00d9b9834ec0d.jpg/9806f9f8-f3f3-ba9a-6623-7939a473ad5c?t=1689412249750`,
+      },
+    ],
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log("Error sending email:", error);
+    } else {
+      console.log("Email sent: " + info.response);
+    }
+  });
+}
+
 module.exports = {
   getAll: async (req, res, next) => {
     const { doctorId, date, status } = req.query;
@@ -122,22 +150,22 @@ module.exports = {
           },
           {
             model: db.Doctor_Infor,
-            as:'doctorDataInfo',
+            as: "doctorDataInfo",
             attributes: ["clinicId"],
             where: { id: db.sequelize.col("Booking.doctorId") },
             required: true,
             include: [
               {
                 model: db.Clinic,
-                attributes: ["name"], 
-                as: "clinicData" 
+                attributes: ["name"],
+                as: "clinicData",
               },
               {
                 model: db.Allcode,
                 as: "priceData",
                 attributes: ["valueVi"],
               },
-            ]
+            ],
           },
         ],
         raw: true,
@@ -176,7 +204,7 @@ module.exports = {
     try {
       const data = req.body;
       const token = generateToken(
-        { email: "hoa@gmail.com" },
+        { email: `${data.emailUser}` },
         jwtSettings.SECRET,
         { expiresIn: "15m" }
       );
@@ -196,7 +224,7 @@ module.exports = {
           <div><b>Thời gian: ${data.timeTypeValue} - ${data.dayName} - ${data.day}/${data.month}/${data.year}</b></div>
           <div><b>${data.doctorPosition}: ${data.doctorFirstName} ${data.doctorLastName}</b></div>
           <p>Nếu thông tin trên là đúng sự thật, vui lòng click vào đường link bên dưới để xác nhận và hoàn tất thủ tục đặt lịch khám bệnh</p>
-          <a href="http://localhost:3000/verify-booking?token=${token}&doctorId=${data.doctorId}">Click here </a>
+          <a href="http://localhost:3000/verify-booking?token=${token}&doctorId=${data.doctorId}&email=${data.emailUser}">Click here </a>
           <p>Xin chân thành cảm ơn</p>
         `,
       };
@@ -238,6 +266,21 @@ module.exports = {
           where: { doctorId: data.doctorId, token: data.token },
         }
       );
+
+      let emailSent = false; // Biến để đánh dấu liệu email đã được gửi hay chưa
+      if (newItem && !emailSent) {
+        setTimeout(async () => {
+          await sendEmailMedicalExaminationInformation(data.email);
+          emailSent = true; 
+        }, 60000);
+      }
+
+      if (newItem) {
+        setTimeout(async () => {
+          await sendEmailMedicalExaminationInformation(data.email);
+        }, 60000);
+      }
+
       return res.send({
         code: 200,
         message: "Tạo thành công",
@@ -265,8 +308,11 @@ module.exports = {
           subject: "Kết quả đặt lịch khám bệnh",
           html: `
             <p>Xin chào!</p>
-            <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên HealthCare thành công</p>
-            <p>Thông tin pháp đồ điệu trị và những lưu ý khi đi khám được gửi trong file đính kèm</p>
+            <p>Chúng tôi muốn gửi lời cảm ơn chân thành đến bạn đã đến khám bệnh tại chúng tôi</p>
+            <p>Chúng tôi rất trân trọng sự tin tưởng và lựa chọn của bạn vào dịch vụ chăm sóc sức khỏe của chúng tôi. Với sứ mệnh mang lại dịch vụ chăm sóc tốt nhất và đảm   bảo sức khỏe của bạn, chúng tôi luôn sẵn lòng hỗ trợ bạn mọi lúc.
+            </p>
+            <p>Nếu bạn có bất kỳ câu hỏi hoặc yêu cầu nào khác, đừng ngần ngại liên hệ với chúng tôi. Chúng tôi rất mong được phục vụ bạn một lần nữa trong tương lai gần.</p>
+            <p>Thông tin về hóa đơn và những kêt quả khám được gửi trong file đính kèm</p>
             <p>Xin chân thành cảm ơn</p>
             `,
           attachments: [],
