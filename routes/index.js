@@ -6,7 +6,6 @@ var db = require('../models/index');
 router.get('/',async function (req, res, next) {
   try {
     let data = await db.User.findAll();
-    console.log('««««« data »»»»»', data);
     res.render('index', { title: 'Express' });
   } catch (e) {
     console.log('««««« e »»»»»', e);

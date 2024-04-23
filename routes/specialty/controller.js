@@ -3,17 +3,28 @@ var db = require('../../models/index');
 module.exports = {
   getAll: async (req, res, next) => {
     try {
-      const { name } = req.query;
+      const { name = "", page = 1, limit = 10 } = req.query;
+      const pageNumber = parseInt(page, 10);
+      const pageSize = parseInt(limit, 10);
       const conditionFind = {
         where: {
           name: {
             [db.Sequelize.Op.like]: `%${name}%`,
           },
         },
+        limit: pageSize,
+        offset: (pageNumber - 1) * pageSize,
       };
       let results = await db.Specialty.findAll(conditionFind)
+      const total = await db.Specialty.count({
+        where: {
+          name: {
+            [db.Sequelize.Op.like]: `%${name}%`,
+          },
+        },
+      });
   
-      return res.send({ code: 200, payload: results });
+      return res.send({ code: 200, payload: results, total });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
     }

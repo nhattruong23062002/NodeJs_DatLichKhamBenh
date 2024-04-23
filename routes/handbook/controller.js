@@ -3,9 +3,18 @@ var db = require('../../models/index');
 module.exports = {
   getAll: async (req, res, next) => {
     try {
-      let results = await db.Handbook.findAll()
+      const { page = 1, limit = 10 } = req.query;
+      const pageNumber = parseInt(page, 10);
+      const pageSize = parseInt(limit, 10);
+
+      let results = await db.Handbook.findAll({
+        limit: pageSize,
+        offset: (pageNumber - 1) * pageSize,
+      })
+
+      const total = await db.Handbook.count();
   
-      return res.send({ code: 200, payload: results });
+      return res.send({ code: 200, payload: results, total });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
     }

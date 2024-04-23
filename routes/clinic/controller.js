@@ -3,23 +3,40 @@ const { Op } = require('sequelize');
 
 
 module.exports = {
-  getAll: async (req, res, next) => {
+   getAll : async (req, res, next) => {
     try {
-      const { name } = req.query;
+      const { name = "", page = 1, limit = 10 } = req.query;
+      const pageNumber = parseInt(page, 10);
+      const pageSize = parseInt(limit, 10);
+  
       const conditionFind = {
         where: {
           name: {
             [db.Sequelize.Op.like]: `%${name}%`,
           },
         },
-      };
-      let results = await db.Clinic.findAll(conditionFind);
-
-      return res.send({ code: 200, payload: results });
+        limit: pageSize,
+        offset: (pageNumber - 1) * pageSize,
+      };  
+      const results = await db.Clinic.findAll(conditionFind);
+      const total = await db.Clinic.count({
+        where: {
+          name: {
+            [db.Sequelize.Op.like]: `%${name}%`,
+          },
+        },
+      });
+  
+      return res.status(200).json({
+        code: 200,
+        payload: results,
+        total, 
+      });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
     }
   },
+  
 
   getDetail: async (req, res, next) => {
     try {

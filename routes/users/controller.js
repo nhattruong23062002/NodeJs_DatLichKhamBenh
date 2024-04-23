@@ -193,7 +193,10 @@ module.exports = {
 
   getAllDoctor: async (req, res, next) => {
     try {
-      const { name } = req.query;
+      const { name = "", page = 1, limit = 10 } = req.query;
+      const pageNumber = parseInt(page, 10);
+      const pageSize = parseInt(limit, 10);
+
       let results = await db.User.findAll({
         where: {
           roleId: "R2",
@@ -201,6 +204,8 @@ module.exports = {
             [db.Sequelize.Op.like]: `%${name}%`,
           },
         },
+        limit: pageSize,
+        offset: (pageNumber - 1) * pageSize,
         include: [
           { model: db.Allcode, as: "positionData", attributes: ["valueVi"] },
           { model: db.Allcode, as: "genderData", attributes: ["valueVi"] },
@@ -213,7 +218,16 @@ module.exports = {
         nest: true,
       });
 
-      return res.send({ code: 200, payload: results });
+      const total = await db.User.count({
+        where: {
+          roleId: "R2",
+          lastName: {
+            [db.Sequelize.Op.like]: `%${name}%`,
+          },
+        },
+      });
+
+      return res.send({ code: 200, payload: results, total });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
     }
@@ -361,34 +375,6 @@ module.exports = {
     }
   },
 
-  getAllDoctor: async (req, res, next) => {
-    try {
-      const { name } = req.query;
-      let results = await db.User.findAll({
-        where: {
-          roleId: "R2",
-          lastName: {
-            [db.Sequelize.Op.like]: `%${name}%`,
-          },
-        },
-        include: [
-          { model: db.Allcode, as: "positionData", attributes: ["valueVi"] },
-          { model: db.Allcode, as: "genderData", attributes: ["valueVi"] },
-          {
-            model: db.Doctor_Infor,
-            include: [{ model: db.Specialty, as: "specialtyData" }],
-          },
-        ],
-        raw: true,
-        nest: true,
-      });
-
-      return res.send({ code: 200, payload: results });
-    } catch (err) {
-      return res.status(500).json({ code: 500, error: err });
-    }
-  },
-
   getAllPatient: async (req, res, next) => {
     try {
       let results = await db.User.findAll({
@@ -467,8 +453,6 @@ module.exports = {
       });
 
       let patientIds = results.map((result) => result.patientId);
-      console.log("««««« patientIds »»»»»", patientIds);
-
       let topPatients = await Promise.all(
         patientIds.map(async (patientId) => {
           let doctorIdsArr = await db.Booking.findAll({
