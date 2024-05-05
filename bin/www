@@ -4,30 +4,85 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('nodejs--n-t-t-nghi-p:server');
-var http = require('http');
+var app = require("../app");
+var debug = require("debug")("nodejs--n-t-t-nghi-p:server");
+const socketIo = require("socket.io");
+var http = require("http");
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.NODE_ENV || '3333');
-app.set('port', port);
+var port = normalizePort(process.env.NODE_ENV || "3333");
+app.set("port", port);
 
 /**
  * Create HTTP server.
  */
 
 var server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
+const roomMessages = {};
+
+io.on("connection", (socket) => {
+  socket.on("joinRoom", ({ roomId }) => {
+    socket.join(roomId);
+
+    if (roomMessages[roomId] && roomMessages[roomId].length > 0) {
+      // Gửi tin nhắn tạm thời cho admin khi họ tham gia vào phòng
+      socket.emit("messageHistory", roomMessages[roomId]);
+    }
+  });
+
+  socket.on("chat", ({ roomId, message }) => {
+    const messageData = {
+      content: message,
+      roomId: roomId,
+    };
+
+    if (!roomMessages[roomId]) {
+      roomMessages[roomId] = [];
+    }
+    roomMessages[roomId].push(messageData);
+
+    io.to(roomId).emit("message", messageData);
+  });
+
+  socket.on("on-update", ({ roomId }) => {
+    const updateData = {
+      roomId: roomId,
+    };
+    io.emit("update", updateData);
+  });
+
+  socket.on("getRooms", () => {
+    const rooms = socket.adapter.rooms;
+    const roomList = [];
+    for (const room of rooms.keys()) {
+      if (room.includes("-44")) {
+        roomList.push(room);
+      }
+    }
+    socket.emit("roomList", roomList);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
+});
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
 server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+server.on("error", onError);
+server.on("listening", onListening);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -54,22 +109,20 @@ function normalizePort(val) {
  */
 
 function onError(error) {
-  if (error.syscall !== 'listen') {
+  if (error.syscall !== "listen") {
     throw error;
   }
 
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
+  var bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+    case "EACCES":
+      console.error(bind + " requires elevated privileges");
       process.exit(1);
       break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+    case "EADDRINUSE":
+      console.error(bind + " is already in use");
       process.exit(1);
       break;
     default:
@@ -83,8 +136,6 @@ function onError(error) {
 
 function onListening() {
   var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+  debug("Listening on " + bind);
 }

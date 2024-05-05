@@ -209,9 +209,24 @@ module.exports = {
         { expiresIn: "15m" }
       );
 
-      const newItem = new db.Booking(data);
+      const newItem = await db.Booking.create(data);
       newItem.token = token;
       let result = await newItem.save();
+
+      const scheduleData = await db.Schedule.findOne({
+        where: { id: data.scheduleId },
+      });
+      if (!scheduleData) {
+        return res
+          .status(404)
+          .json({ code: 404, message: "Không tìm thấy lịch trình" });
+      }
+
+      const updated = await db.Schedule.update(
+        { currentNumber: scheduleData.currentNumber + 10 },
+        { where: { id: scheduleData.id } }
+      );
+
       // Gửi email chứa URL đặt lại mật khẩu
       const mailOptions = {
         from: "nhattr2306@gmail.com", // Thay thế bằng email của bạn
@@ -271,7 +286,7 @@ module.exports = {
       if (newItem && !emailSent) {
         setTimeout(async () => {
           await sendEmailMedicalExaminationInformation(data.email);
-          emailSent = true; 
+          emailSent = true;
         }, 60000);
       }
 
