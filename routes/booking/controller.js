@@ -239,7 +239,7 @@ module.exports = {
           <div><b>Thời gian: ${data.timeTypeValue} - ${data.dayName} - ${data.day}/${data.month}/${data.year}</b></div>
           <div><b>${data.doctorPosition}: ${data.doctorFirstName} ${data.doctorLastName}</b></div>
           <p>Nếu thông tin trên là đúng sự thật, vui lòng click vào đường link bên dưới để xác nhận và hoàn tất thủ tục đặt lịch khám bệnh</p>
-          <a href="http://localhost:3000/verify-booking?token=${token}&doctorId=${data.doctorId}&email=${data.emailUser}">Click here </a>
+          <a href="https://react-js-do-an-dat-lich-kham-benh.vercel.app/verify-booking?token=${token}&doctorId=${data.doctorId}&email=${data.emailUser}">Click here </a>
           <p>Xin chân thành cảm ơn</p>
         `,
       };
@@ -336,7 +336,7 @@ module.exports = {
         if (updateData.fileName) {
           mailOptions.attachments.push({
             filename: "your-image.jpg",
-            path: `http://localhost:3333/${updateData.fileName}`,
+            path: `https://nodejs-datlichkhambenh-1.onrender.com/${updateData.fileName}`,
           });
         }
 

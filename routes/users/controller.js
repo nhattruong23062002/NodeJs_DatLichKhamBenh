@@ -259,7 +259,7 @@ module.exports = {
         html: `
           <p>Xin chào,</p>
           <p>Bạn đã yêu cầu đặt lại mật khẩu từ HealthCare.Vui lòng nhấp vào liên kết bên dưới để đặt lại mật khẩu của bạn:</p>
-          <p><a href="http://localhost:3000/resetPassword?token=${token}">Đặt lại mật khẩu</a></p>
+          <p><a href="https://react-js-do-an-dat-lich-kham-benh.vercel.app/resetPassword?token=${token}">Đặt lại mật khẩu</a></p>
           <p>Trân trọng,</p>
           <p>Đội ngũ của chúng tôi</p>
         `,
@@ -478,13 +478,12 @@ module.exports = {
             let priceId = priceIds[i];
             let priceInfo = await db.Allcode.findOne({
               where: { keyMap: priceId },
-              raw: true
+              raw: true,
             });
             if (priceInfo) {
               totalPrice += parseInt(priceInfo.valueVi);
             }
           }
-    
 
           let patient = await db.User.findOne({
             where: { id: patientId },
