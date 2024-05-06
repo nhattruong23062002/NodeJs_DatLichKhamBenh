@@ -312,6 +312,8 @@ module.exports = {
       const { id } = req.params;
       const updateData = req.body;
 
+      console.log("««««« updateData »»»»»", updateData);
+
       const found = await db.Booking.update(updateData, {
         where: { id: id },
       });
@@ -339,6 +341,38 @@ module.exports = {
             path: `https://nodejs-datlichkhambenh-1.onrender.com/${updateData.fileName}`,
           });
         }
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.log("Error sending email:", error);
+            return res.status(500).json({
+              statusCode: 500,
+              message: "Đã có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.",
+            });
+          }
+          console.log("Email sent: " + info.response);
+          return res.status(200).json({
+            statusCode: 200,
+            message:
+              "Một email chứa liên kết đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn.",
+          });
+        });
+      }
+
+      if (updateData.role === "doctor") {
+        const mailOptions = {
+          from: "nhattr2306@gmail.com",
+          to: "nhattr23062@gmail.com",
+          subject: "Thông báo lịch hẹn bị hủy",
+          html: `
+            <p>Xin chào!</p>
+            <p>Chúng tôi muốn gửi lời xin lỗi chân thành đến bạn vì lịch hẹn của bạn đã bị hủy</p>
+            <p>Chúng tôi rất tiếc vì sự bất tiện này và hiểu rằng việc thay đổi lịch hẹn có thể gây ra không thoải mái cho bạn. Vì một lý do đột xuất ngoài ý muốn nên bác sĩ không thể tiếp nhận lịch khám trong khoảng thời gian bạn đã đặt lịch , và chúng tôi đang nỗ lực để đảm bảo rằng điều này sẽ không xảy ra lần nữa trong tương lai.
+            </p>
+            <p>Nếu bạn vẫn muốn đặt lịch khám thì có thể tham khảo những khung giờ khác. Nếu có bất kỳ câu hỏi nào có thể liên hệ với chúng tôi.</p>
+            <p>Xin chân thành cảm ơn</p>
+            `,
+        };
 
         transporter.sendMail(mailOptions, (error, info) => {
           if (error) {

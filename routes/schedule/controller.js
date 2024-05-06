@@ -8,15 +8,14 @@ module.exports = {
       const { doctorId, date } = req.query;
       doctorNumber = parseInt(doctorId);
       dateNumber = parseInt(date);
-      console.log('««««« dateNumber »»»»»', dateNumber);
-      
+
       let results = await db.Schedule.findAll({
         where: { doctorId: doctorNumber, date: dateNumber },
         include: [
-          { model: db.Allcode, as: 'timeTypeData' , attributes: ['valueVi']}
+          { model: db.Allcode, as: "timeTypeData", attributes: ["valueVi"] },
         ],
-        raw : false,
-        nest: true
+        raw: false,
+        nest: true,
       });
 
       return res.send({ code: 200, payload: results });
@@ -31,10 +30,10 @@ module.exports = {
       let found = await db.Schedule.findOne({
         where: { id: id },
         include: [
-          { model: db.Allcode, as: 'timeTypeData' , attributes: ['valueVi']}
+          { model: db.Allcode, as: "timeTypeData", attributes: ["valueVi"] },
         ],
-        raw : false,
-        nest: true
+        raw: false,
+        nest: true,
       });
 
       if (found) {
