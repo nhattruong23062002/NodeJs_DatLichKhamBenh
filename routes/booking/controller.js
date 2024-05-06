@@ -223,7 +223,7 @@ module.exports = {
       }
 
       const updated = await db.Schedule.update(
-        { currentNumber: scheduleData.currentNumber + 10 },
+        { currentNumber: scheduleData.currentNumber + 1 },
         { where: { id: scheduleData.id } }
       );
 
