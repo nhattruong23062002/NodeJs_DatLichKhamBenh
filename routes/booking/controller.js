@@ -66,11 +66,11 @@ module.exports = {
     try {
       const startOfWeek = moment()
         .startOf("isoWeek")
-        .isoWeekday(1)
+        .isoWeekday(0)
         .format("YYYY-MM-DD 17:00:00.000Z");
       const endOfWeek = moment()
         .endOf("isoWeek")
-        .isoWeekday(7)
+        .isoWeekday(6)
         .format("YYYY-MM-DD 17:00:00.000Z");
 
       let results = await db.Booking.findAll({
@@ -282,17 +282,11 @@ module.exports = {
         }
       );
 
-      let emailSent = false; // Biến để đánh dấu liệu email đã được gửi hay chưa
+      let emailSent = false;
       if (newItem && !emailSent) {
         setTimeout(async () => {
           await sendEmailMedicalExaminationInformation(data.email);
           emailSent = true;
-        }, 60000);
-      }
-
-      if (newItem) {
-        setTimeout(async () => {
-          await sendEmailMedicalExaminationInformation(data.email);
         }, 60000);
       }
 
@@ -312,15 +306,13 @@ module.exports = {
       const { id } = req.params;
       const updateData = req.body;
 
-      console.log("««««« updateData »»»»»", updateData);
-
       const found = await db.Booking.update(updateData, {
         where: { id: id },
       });
 
       if (updateData.statusId === "S3") {
         const mailOptions = {
-          from: "nhattr2306@gmail.com", // Thay thế bằng email của bạn
+          from: "nhattr2306@gmail.com",
           to: "nhattr23062@gmail.com",
           subject: "Kết quả đặt lịch khám bệnh",
           html: `
