@@ -22,6 +22,8 @@ module.exports = {
     try {
       const { email } = req.body;
 
+      console.log("««««« req.body »»»»»", req.body);
+
       const user = await db.User.findOne({ where: { email: email } });
 
       const token = generateToken(user, jwtSettings.SECRET);
